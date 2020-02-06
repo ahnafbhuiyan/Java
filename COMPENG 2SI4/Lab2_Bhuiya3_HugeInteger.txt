@@ -1,0 +1,361 @@
+public class HugeInteger {
+    int num[];
+    boolean neg = false;
+    int len;
+
+    public HugeInteger (String val){
+        this.len = val.length();
+
+        if (this.len == 0){
+            throw new IllegalArgumentException("Invalid Input");
+        }
+        try {
+            if ((val.charAt(0))=='-'){
+                this.neg = true; //If the first character is '-' it will mark the object as negative
+                val = val.substring(1);
+                this.len -=1;
+        }
+
+            while (val.charAt(0) == '0') { //Eliminates leading zeros
+                val = val.substring(1);
+                this.len -= 1;
+                if (this.len==0){
+                    val = "0";
+                    this.len = 1;
+                    this.neg = false;
+                    break;
+                }
+                if (val.charAt(0) == '.'){
+                    throw new IllegalArgumentException("Invalid Input");
+                }
+            }
+        }
+        catch (StringIndexOutOfBoundsException e){
+            throw new IllegalArgumentException("Invalid Input");
+        }
+
+        if (this.len <= 0){
+            throw new IllegalArgumentException("Invalid Input");
+        }
+
+        this.num = new int[len];
+        for (int i = 0;i<len;i++){
+            int dig = (val.charAt(i))-48;
+
+            if (dig<=9 && dig>=0){//Checks if each character is valid
+                this.num[i] = dig;
+            }
+            else {
+                throw new IllegalArgumentException("Invalid Input");
+            }
+
+        }
+
+    }
+    public HugeInteger (int n){
+        this.num = new int [n];
+        this.len =n;
+
+
+        if ((int)(Math.random()*2)==1){//Decides if the number will be negative
+            this.neg =true;
+        }
+
+        if (n>=1){
+            for (int i=1; i<n-1;i++){
+                this.num[i] = (int)(Math.random()*10);
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Invalid Input");
+        }
+        this.num[0] = (int)(Math.random()*9+1);//Makes sure the first value of the new number is not
+    }
+
+    public HugeInteger add(HugeInteger h){
+        HugeInteger ans;
+        String temp = "";
+        StringBuilder reverse;
+        int carry = 0,dig,sum;
+        HugeInteger copyThis = this.copy();//Creates a copy to manipulate
+        HugeInteger copyH = h.copy();//Copy of h
+        //Sets the copies as positive
+        copyThis.neg = false;
+        copyH.neg = false;
+
+        if (this.neg && !h.neg ){//Checks if either of the numbers are negative and calls subtract if they are
+            ans = copyThis.subtract(h);
+            if (copyThis.compareTo(h)==1){//The magnitude of this is bigger than h, it makes the answer negative
+                ans.neg = true;
+            }
+            return ans;
+        }
+        else if (!this.neg && h.neg ){//if h is negative
+            ans = copyH.subtract(this);
+            if (copyH.compareTo(this)==1){//The magnitude of this is bigger than h, it makes the answer negative
+                ans.neg = true;
+            }
+            return ans;
+        }
+        else if (this.neg){
+            ans = copyThis.add(copyH);
+            ans.neg = true;
+            return ans;
+        }
+        else {
+            if (this.len == h.len){//If the two integers are the same length
+                for (int i = this.len-1; i>=0;i--){
+                    sum = this.num[i]+h.num[i] + carry;
+                    carry = 0;//resets the carry value
+
+                    if (sum>9){//If the sum is greater than 9 it will separate the number into the first digit (dig) and the second (carry)
+                        carry = sum/10;
+                        dig = sum%10;
+                    }
+                    else {
+                        dig = sum;
+                    }
+                    temp += Integer.toString(dig);//Adds each dig into a string
+                }
+                if (carry==1){
+                    temp += Integer.toString(carry);//Adds any remaining carry to the string
+                }
+            }
+            else if (this.len<h.len){//If length of h is bigger than 'this'
+                int dist = h.len - this.len;
+                for (int i = this.len-1; i>=0;i--){
+                    sum = this.num[i]+h.num[i+dist] + carry;
+                    carry = 0;//resets the carry value
+
+                    if (sum>9){//If the sum is greater than 9 it will separate the number into the first digit (dig) and the second (carry)
+                        carry = sum/10;
+                        dig = sum%10;
+                    }
+                    else {
+                        dig = sum;
+                    }
+                    temp += Integer.toString(dig);//Adds each dig into a string
+                }
+
+                for (int i= dist-1;i>=0;i--){//Checks if adding carry to the next digit makes it greater than 9
+                    int sum2 = carry+h.num[i];
+                    carry = 0;
+
+                    if (sum2>9){//If the sum is greater than 9 it will separate the number into the first digit (dig) and the second (carry)
+                        carry = sum2/10;
+                        dig = sum2%10;
+                    }
+                    else {
+                        dig = sum2;
+                    }
+                    temp += Integer.toString(dig);//Adds each dig into a string
+                }
+                if (carry==1){
+                    temp += Integer.toString(carry);//Adds any remaining carry to the string
+                }
+            }
+            else {
+                return h.add(this);
+            }
+        }
+        reverse = new StringBuilder(temp);//Creates the Stringbuilder object to reverse
+        ans = new HugeInteger(reverse.reverse().toString());
+        return ans;
+    }
+
+    public HugeInteger subtract (HugeInteger h){
+        HugeInteger ans;
+        String temp = "";
+        StringBuilder reverse;
+        int carry = 0,dif;
+        HugeInteger copyThis = this.copy();//Creates a copy to manipulate
+        HugeInteger copyH = h.copy();//Copy of h
+        //Sets the copies as positive
+        copyThis.neg = false;
+        copyH.neg = false;
+
+
+        if (this.compareTo(h)==0){//If the numbers are the same
+            ans = new HugeInteger("0");
+            return ans;
+        }
+        else if (this.compareTo(h)==-1){//If this is bigger than h
+            ans = h.subtract(this);
+            ans.neg = true;
+            return ans;
+        }
+        if (copyThis.compareTo(copyH)==1 && this.neg && !h.neg){//If this is bigger than h in magnitude, but negative
+            ans = h.add(this);
+            ans.neg = true;
+            return ans;
+        }
+        else if (copyH.compareTo(copyThis)==1 && !this.neg && h.neg){//If h is bigger than this in magnitude, but negative
+            ans = h.add(this);
+            ans.neg = true;
+            return ans;
+        }
+        if (this.neg && h.neg){//If both the numbers are negative
+            if (copyH.compareTo(copyThis)==1){//If h is bigger in magnitude than this
+                ans = copyH.subtract(copyThis);
+                ans.neg =false;
+                return ans;
+            }
+            else if (copyH.compareTo(copyThis)==-1){//If h is smaller in magnitude than this
+                ans = copyThis.subtract(copyH);
+                ans.neg=true;
+                return ans;
+            }
+        }
+        else if (!this.neg && h.neg){//If the second one is negative
+            ans = this.add(copyH);
+            return ans;
+        }
+        /*
+        else if (this.neg){//if the first one is negative
+            ans = copyThis.add(h);
+            ans.neg =true;
+            return ans;
+        }
+
+         */
+        else if (this.len==h.len){//Subtracts the integers if they are the same size
+            for (int i = this.len-1; i>=0;i--) {
+                if (this.num[i] >= h.num[i]) {//If the value in this is greater than h
+                    dif = this.num[i] - h.num[i] -carry;
+                    carry = 0;//Resets carry
+                }
+                else {
+                    dif =  (10+this.num[i] -carry) - h.num[i];
+                    carry = 1;
+
+                }
+                temp += Integer.toString(dif);
+             }
+        }
+        else if (this.len>h.len){//if this is longer than h
+            int dist = this.len - h.len;
+            for (int i=h.len-1;i>=0;i--){
+                if (this.num[i+dist]-carry >= h.num[i]) {//If the value in this is greater than h
+                    dif = this.num[i+dist] - h.num[i] -carry;
+                    carry = 0;//Resets carry
+                }
+                else {
+                    dif =  (10+this.num[i+dist] -carry) - h.num[i];
+                    carry = 1;
+                }
+                temp += Integer.toString(dif);
+            }
+            for (int i = dist-1;i>=0;i--){//Loads any remaining digits into the string
+                dif = this.num[i] - carry;
+                carry = 0;
+                temp += Integer.toString(dif);
+            }
+        }
+        else {
+            h.subtract(this);
+        }
+
+        reverse = new StringBuilder(temp);//Creates the Stringbuilder object to reverse
+        ans = new HugeInteger(reverse.reverse().toString());
+        return ans;
+    }
+
+    public HugeInteger multiply (HugeInteger h) {
+        int lineSum = 0;
+        String temp = "";
+        HugeInteger ans = new HugeInteger("0");
+        HugeInteger temp2;
+        String zero = "";
+        String zero2 = "";
+
+        for (int i = h.len - 1; i >= 0; i--) {//Goes through the two integers and multiplies the digits
+            zero2 += "0";
+            zero = zero2;
+            for (int j = this.len - 1; j >= 0; j--) {
+                lineSum = h.num[i] * this.num[j];
+                temp = Integer.toString(lineSum);
+                temp += zero;
+                temp = temp.substring(0, temp.length()-1);
+                temp2 = new HugeInteger(temp);
+                ans = ans.add(temp2);
+                zero += "0";
+            }
+
+        }
+
+        if (h.neg && !this.neg || !h.neg && this.neg) {//If either number is negative, it makes the answer negative
+            ans.neg = true;
+        }
+        return ans;
+    }
+
+    public int compareTo(HugeInteger h){
+        if (!this.neg && h.neg){//If this is positive and h is not
+            return 1;
+        }
+        else if (this.neg && !h.neg){//If this is negative and h is not
+            return -1;
+        }
+
+        if (!this.neg){//If both are postive
+            if (this.len>h.len){//If this is longer than h
+                return 1;
+            }
+            else if (this.len<h.len){//If h is longer than this
+                return -1;
+            }
+            else {//If they are the same length
+                for (int i = 0;i<this.len;i++){
+                    if (this.num[i]>h.num[i]){
+                        return 1;
+                    }
+                    else if (this.num[i]<h.num[i]) {
+                        return -1;
+                    }
+                }
+            }
+        }
+        else {//If both are negative
+            if (this.len>h.len){
+                return -1;
+            }
+            else if (this.len<h.len){
+                return 1;
+            }
+            else {
+                for (int i = 0;i<this.len;i++){
+                    if (this.num[i]<h.num[i]){
+                        return 1;
+                    }
+                    else if (this.num[i]>h.num[i]) {
+                        return -1;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    HugeInteger copy (){//Creates a new object which is a copy 'this'
+        String temp = "";
+        for (int i = 0;i<this.len;i++){//Goes through the array and adds it to a string
+            temp+= Integer.toString(this.num[i]);
+        }
+        HugeInteger sent = new HugeInteger(temp);
+        sent.neg = this.neg;
+        return sent;
+    }
+
+    public String toString(){
+        String send = "";
+
+        if (this.neg){
+            send+= "-";
+        }
+
+        for (int i=0; i<this.len;i++){
+            send+= this.num[i];
+        }
+        return send;
+    }
+}
