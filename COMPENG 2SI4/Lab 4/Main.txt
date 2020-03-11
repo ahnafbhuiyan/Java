@@ -1,0 +1,138 @@
+public class Main {
+    static double  [] loads = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+
+
+    public static double [] testLin (double []load, int size){
+        int probes;
+        double [] avg = new double[10];
+
+        for (int i=0;i<load.length;i++){
+            HashTableLin test = new HashTableLin(size,load[i]);
+            probes = 0;
+
+            for (int j=0;j<size;j++){
+                int temp =(int) (Math.random()*1000);
+                probes = probes + test.insertCount(temp);
+            }
+            avg[i] = (double)probes/test.getKeys();
+        }
+        return avg;
+    }
+
+    public static double [] testQuad (double []load, int size){
+        int probes;
+        double [] avg = new double[10];
+
+        for (int i=0;i<load.length;i++){
+            HashTableQuad test = new HashTableQuad(size,load[i]);
+            probes = 0;
+
+            for (int j=0;j<size;j++){
+                int temp =(int) (Math.random()*1000);
+                probes = probes + test.insertCount(temp);
+            }
+            avg[i] = (double)probes/test.getKeys();
+        }
+        return avg;
+    }
+
+    public static double [] theoretical (double [] load){
+        double [] theo = new double [10];
+
+        for (int i=0;i<9;i++){
+            theo[i] = 1.0/2*(1+ 1/(1-load[i]));
+        }
+        return theo;
+    }
+    public static void main(String[] args) {
+        HashTableLin firstL = new HashTableLin(5,0.4);
+        HashTableQuad firstQ = new HashTableQuad(5,0.4);
+        HashTableLin secL = new HashTableLin(500,0.9);
+        HashTableQuad secQ = new HashTableQuad(500,0.9);
+        int [] test = {122,56,7,3,90};
+        int [] testRepeat = {122,56,7,3,90,28,122,63,63,21,78,90,56};
+        double [] valL = testLin(loads,firstL.getSize());
+        double [] valQ = testQuad(loads,firstQ.getSizeTable());
+        System.out.println(firstL.prime(1234567));
+
+        System.out.println("Check if the size is always prime");
+        System.out.println("firstL size, should be 13 : " +firstL.getSize());
+        System.out.println("firstQ size, should be 13: " +firstQ.getSizeTable());
+        System.out.println("secL size, should be 557: " +secL.getSize());
+        System.out.println("secQ size, should be 557: " +secQ.getSizeTable());
+
+        System.out.println();
+        System.out.println("Linear");
+
+        for (int i =0;i<test.length;i++){
+            firstL.insert(test[i]);
+        }
+        firstL.printKeysAndIndexes();
+        System.out.println("# of keys: "+firstL.getKeys());
+        System.out.println("Load: " +firstL.currLoad());
+
+
+        System.out.println("Forcing a rehash");
+        firstL.insert(5);
+        firstL.printKeysAndIndexes();
+        System.out.println("# of Keys: "+firstL.getKeys());
+        System.out.println("Load: " +firstL.currLoad());
+
+        System.out.println("Check 5 'is in', should be true: "+firstL.isIn(5));
+        System.out.println("Check 73 'is in', should be false: "+firstL.isIn(73));
+
+        System.out.println("Creating an object with repetitions");
+        for (int i=0; i<testRepeat.length;i++){
+            secL.insert(testRepeat[i]);
+        }
+        secL.printKeysAndIndexes();
+        System.out.println("# of keys: "+secL.getKeys());
+
+        //Quadratic Test
+        System.out.println();
+        System.out.println("Quadratic");
+
+        for (int i=0; i<test.length;i++){
+            firstQ.insert(test[i]);
+        }
+        firstQ.printKeysAndIndexes();
+        System.out.println("# of keys: "+firstQ.getKeys());
+        System.out.println("Load: " +firstQ.currLoad());
+
+        System.out.println("Forcing a rehash");
+        firstQ.insert(5);
+        firstQ.printKeysAndIndexes();
+        System.out.println("# of Keys: "+firstQ.getKeys());
+        System.out.println("Load: " +firstQ.currLoad());
+
+        System.out.println("Check 5 'is in', should be true: "+firstQ.isIn(5));
+        System.out.println("Check 73 'is in', should be false: "+firstQ.isIn(73));
+
+        System.out.println("Creating an object with repetitions");
+        for (int i=0; i<testRepeat.length;i++){
+            secQ.insert(testRepeat[i]);
+        }
+        secQ.printKeysAndIndexes();
+        System.out.println("# of keys: "+secQ.getKeys());
+
+        System.out.println();
+
+        double [] theo = theoretical(loads);
+
+        System.out.println();
+        System.out.println("Linear test");
+        for (int i = 0;i<valL.length-1;i++){
+            System.out.println("Theoretical Load: "+loads[i]+ ", avg: "+theo[i]+ " ");
+            System.out.println("Load: "+loads[i]+ ", avg: "+valL[i]+" ");
+        }
+        System.out.println();
+        System.out.println("Quadratic test");
+        for (int i = 0;i<valQ.length-1;i++){
+            System.out.println("Theoretical Load: "+loads[i]+ ", avg: "+theo[i]+ " ");
+            System.out.println("Load: "+loads[i]+ ", avg: "+valQ[i]+" ");
+        }
+
+
+    }
+
+}

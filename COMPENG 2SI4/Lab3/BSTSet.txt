@@ -1,0 +1,313 @@
+import java.util.Stack;
+
+public class BSTSet {
+    private TNode root;
+
+    public BSTSet(){
+        this.root = null;
+    }
+
+    public BSTSet (int [] input){//Time Complexity: O(n)
+        this.root = new TNode(input[0],null,null);//Sets the first element of 'input' as the root
+        int len = input.length;
+        for (int i = 1;i<len;i++){
+            if (!this.isIn(input[i])) {//If the number is already within the tree it will skip that element
+                this.add(input[i]);//Adds the elements of 'input' into 'this' tree using the 'add' function
+            }
+            else {//Prevents repeated numbers
+                continue;
+            }
+        }
+    }
+    public boolean isIn(int v){//Time Complexity: O(log n)
+        TNode node = this.root;
+
+        while (node !=null){
+            if (node.element ==v){
+                return true;//Returns true if the current element is equal to V
+            }
+            else if (node.element<v){
+                node = node.right;//If the current element is smaller than V, it will search to the right
+            }
+            else if (node.element>v){
+                node = node.left;//If the current element is greater ta=han V, it will search to the left
+            }
+        }
+        return false;
+    }
+
+    public void add(int v){//Time Complexity: O(log n)
+        if (this.isIn(v)) {
+            return;
+        }
+        else {
+            if (this.root ==null){
+                this.root = new TNode(v,null,null);
+            }
+
+            TNode node = this.root;
+            TNode back = node;
+
+            while (node !=null){
+                back = node;
+                if (v<node.element && node.left != null){//If v is less than the current node element, it will go towards the left branch
+                    node = node.left;
+                }
+                else if (v>node.element && node.right != null){//If v is greater than the current node element, it will go towards the right branch
+                    node = node.right;
+                }
+                else {
+                    break;
+                }
+            }
+            TNode set = new TNode(v,null,null);//Creates a new Node with the value of V, at the end of the tree
+            if (set.element<back.element){//If v is less than the previous node, it will set it as the left of the previous node
+                back.left = set;
+            }
+            else if (set.element>back.element){//If v is greater than the previous node, it will set it as the right of the previous node
+                back.right = set;
+            }
+        }
+    }
+
+    //Moves the inputted node into the next available space
+    private void move (TNode curr, TNode prev, TNode rem){//Time Complexity: O(log n)
+        if (curr !=null && curr.element != prev.element){
+            if (curr.element<prev.element ){//If the curr element is less than the prev element
+                if (rem.element == prev.left.element){
+                    prev.left = new TNode(curr.element, curr.left,curr.right);
+                    return;
+                }
+                else if (prev.left == null){
+                    prev.left = curr;
+                }
+                else {
+                    prev = prev.left;//Moves the 'cursor' down to the next node, in this case, the left leaf
+                    move(curr,prev,rem);//Calls itself again to redo the process
+                }
+            }
+            else if (curr.element>prev.element){//If the curr element is greater than the prev element
+                if (rem.element == prev.right.element){
+                    prev.right = new TNode(curr.element, curr.left,curr.right);
+                    return;
+                }
+                else if (prev.right == null){
+                    prev.right = curr;
+                }
+                else {
+                    prev = prev.right;//Moves the 'cursor' down to the next node, in this case, the left leaf
+                    move(curr,prev,rem);//Calls itself again to redo the process
+                }
+            }
+        }
+    }
+
+    public boolean remove (int v){//Time Complexity: O(log n)
+        if (this.isIn(v)) {
+            this.removeV(v);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private void removeV (int v) {//Time Complexity: O(log n)
+        TNode node = this.root;//Current node
+        TNode back = node;//Keeps a node to track the previous node
+            if (node.element == v){//If the root is the element being removed
+                if (node.right !=null){//If the right branch is not null, makes that branch into the new root
+                    node = node.right;
+                    TNode left = this.root.left;
+                    while(node !=null){
+                        if (left.element<node.element){
+                            if (node.left ==null){
+                                node.left = left;
+                                break;
+                            }
+                            else {
+                                node = node.left;
+                            }
+                        }
+                        else if (left.element>node.element){
+                            if (node.right ==null){
+                                node.right = left;
+                                break;
+                            }
+                            else {
+                                node = node.right;
+                            }
+                        }
+                    }
+                    this.root = this.root.right;
+                }
+                else if (node.left !=null){//If the
+                    this.root = node.left;
+                }
+
+            }
+            else {//If the element needed to be removed is not the root
+                while (node != null) {
+                    if (node.element == v) {//If the current element is equal to v, it sets the left and right of that node to be the left and right of the previous node
+                        if (node.left != null && node.right != null) {//If the node has two children
+                            this.move(node.left, back, node);
+                            this.move(node.right, back, node);
+                            break;
+                        } else if (node.left != null) {//If the node has a left child
+                            this.move(node.left, back, node);
+                            break;
+                        } else if (node.right != null) {//If the node has a right child
+                            this.move(node.right, back, node);
+                            break;
+                        } else {
+                            if (node == back.left) {
+                                back.left = null;
+                                break;
+                            } else if (node == back.right) {
+                                back.right = null;
+                                break;
+                            }
+                        }
+                    } else if (node.element < v) {
+                        back = node;
+                        node = node.right;
+                    } else if (node.element > v) {
+                        back = node;
+                        node = node.left;
+                    }
+                }
+            }
+    }
+
+    public BSTSet union (BSTSet s){//Time Complexity: O(log n)
+        BSTSet ans = new BSTSet();
+        this.union(ans,this.root);//Unions for 'this' BST
+        this.union(ans,s.root);//Unions for 's' BST
+
+        return ans;
+    }
+
+    private void union (BSTSet s, TNode next){//Time Complexity: O(log n)
+        if (next != null){
+            s.add(next.element);//Adds the element into the new Set if the number is not already in it
+            this.union(s,next.left);//Branches into the left
+            this.union(s,next.right);//Branches into the right
+        }
+    }
+
+    public BSTSet intersection(BSTSet s){//Time Complexity: O(log n)
+        BSTSet ans = new BSTSet();
+
+        this.intersection(ans,s.root);//If any value from 'this' are in 's' it will add them to 'ans'
+
+        return ans;
+    }
+
+    private void intersection (BSTSet ans, TNode next){//Time Complexity: O(log n)
+        if (next !=null){
+            if (this.isIn(next.element)){//if the current element is in 'this' and s, then it adds it to the returned answer BST
+                ans.add(next.element);
+            }
+            this.intersection(ans,next.right);//Goes into right branch
+            this.intersection(ans,next.left);//Goes into left branch
+        }
+    }
+
+    public BSTSet difference (BSTSet s){//Time Complexity: O(log n)
+        BSTSet ans = new BSTSet();
+
+        s.difference(ans,this.root);//If any element from 's' is in 'this' it will not add them
+
+        return ans;
+    }
+
+    private void difference (BSTSet ans, TNode next){//Time Complexity: O(log n)
+        if (next !=null){
+            if (!this.isIn(next.element)){//If the element in the 's' is not in 'this' set, it will add it into 'ans'
+                ans.add(next.element);
+            }
+            this.difference(ans,next.left);//Branch left
+            this.difference(ans,next.right);//Branch right
+        }
+    }
+    public int size() {//Time Complexity: O(n)
+        return getSize(this.root);
+    }
+    //Finds the size of the BST using recursion
+    private int getSize(TNode node){//Time Complexity: O(n)
+        if (node==null){
+            return 0;
+        }
+        else {
+            return 1 + getSize(node.left) + getSize(node.right);//Continously goes into the branches of the BST to count the amount of nodes
+        }
+    }
+
+    public int height(){//Time Complexity: O(log n)
+        return height(this.root);
+    }
+
+    private int height (TNode node){//Time Complexity: O(log n)
+        if (node == null) {//If it has reached the end of a branch, returns -1
+            return -1;
+        }
+        else {
+            int left = height(node.left);//Finds the height of the left branches
+            int right = height(node.right);//Finds the height of the right branches
+
+            if (right > left ) {//If the height of the right branches are greater than the left, it will recursively count up the tree until reaching the root
+                return (right + 1);
+            }
+            else {//If the height of the left branches are greater than the right, it will recursively count up the tree until reaching the root
+                return (left + 1);
+            }
+        }
+    }
+
+    public void printBSTSet(){//Time Complexity: O(n)
+        if(this.root==null) {
+            System.out.println("The set is empty");
+        }
+        else{
+            System.out.print("The set elements are: ");
+            printBSTSet(this.root);
+            System.out.print("\n");
+        }
+    }
+    private void printBSTSet(TNode t){//Time Complexity: O(n)
+        if(t!=null){
+            printBSTSet(t.left);
+            System.out.print(" " + t.element + ", ");
+            printBSTSet(t.right);
+        }
+    }
+
+    public void printNonRec(){//Time Complexity: O(n)
+        StackClass set = new StackClass();
+        TNode node = this.root;
+        set.setSize(this.size()-1);
+
+        if (node == null){
+            System.out.println("The set is empty");
+        }
+        else {
+            while (node != null){//Pushes all the left most elements
+                set.push(node);
+                node = node.left;
+            }
+
+            while(!set.isEmpty()){//Prints the elements going up the tree and adding all the right branch elements as the function goes up the tree
+                node = set.pop();
+                System.out.print(node.element+ ", ");
+                node = node.right;
+
+                while(node != null){
+                    set.push(node);//Pushes the right branches which were originally missed into the stack
+                    node = node.left;//Sets it to the left to make sure the order of the numbers are correct
+                }
+            }
+        }
+        System.out.println("\n");
+    }
+}
+

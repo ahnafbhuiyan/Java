@@ -1,0 +1,149 @@
+public class HashTableQuad {
+    private Integer [] table;
+    private int sizeTable;
+    private int keys;
+    private double loadFactMax;
+
+    public HashTableQuad (int maxNum, double load){
+        this.loadFactMax = load;
+        this.keys =0;
+        double min = maxNum/load;
+        sizeTable = prime((int)min);
+        this.table = new Integer[sizeTable];
+
+    }
+
+    private int prime (int min){//Finds the nearest prime number
+        if (min ==2){
+            return min;
+        }
+        else {
+            for (int i = 2; i < min; i++) {
+                if (min%i==0){
+                    min++;
+                    i=2;
+                }
+            }
+        }
+        return min;
+    }
+
+    public void insert (int n){
+        int place = n%this.sizeTable;
+        int i = 0;
+
+        if ((double)(this.keys+1)/this.sizeTable>this.loadFactMax){
+            this.rehash();
+        }
+
+        if (!this.isIn(n)){
+            while(true){
+                if (this.table[place]==null){
+                    this.table[place] = n;
+                    i= 0;
+                    this.keys++;
+                    break;
+                }
+                else {
+                    place = (place + i*i) % this.sizeTable;
+                    i++;
+                }
+            }
+        }
+    }
+
+    public int insertCount(int n){
+        int place = n%this.sizeTable;
+        int probes =1;
+        int i =0;
+
+        if ((double)(this.keys+1)/this.sizeTable>this.loadFactMax){
+            this.rehash();
+        }
+
+        if (!this.isIn(n)){
+            while(true){
+                if (this.table[place]==null){
+                    this.table[place] = n;
+                    i =0;
+                    this.keys++;
+                    break;
+                }
+                else {
+                    place = (place + i*i)% this.sizeTable;
+                    i++;
+                    probes++;
+                }
+            }
+        }
+        return probes;
+    }
+
+    public boolean isIn(int n) {
+        int place = n%this.getSizeTable();
+        int i =0;
+        while (table[place%this.getSizeTable()]!=null){
+            if (this.table[place%this.getSizeTable()]==n){
+                return true;
+            }
+            place+=i*i;
+            i++;
+        }
+        return false;
+    }
+
+    private void rehash(){
+        int sizeNew = prime(this.sizeTable*2);
+        Integer [] tab = new Integer [sizeNew];
+        int size = this.sizeTable;
+        int place;
+
+        for (int i=0;i<size;i++){
+            if (this.table[i]!=null){
+                place = this.table[i]%this.getSizeTable();
+                for (int j = 0;j<size;j++){
+                    if (tab[place]==null){
+                        tab[place] = this.table[i];
+                        break;
+                    }
+                    else {
+                        place = (place + j*j) % sizeTable;
+                    }
+                }
+
+            }
+        }
+        this.sizeTable = sizeNew;
+        this.table = tab;
+    }
+
+    public void printKeys(){
+        for (int i=0;i<this.sizeTable;i++){
+            if (table[i]!=null){
+                System.out.println(table[i]);
+            }
+        }
+    }
+    public void printKeysAndIndexes(){
+        for (int i=0;i<this.sizeTable;i++){
+            if (table[i]!=null){
+                System.out.println(+i+ " : " +table[i]);
+            }
+        }
+    }
+
+    public int getKeys() {
+        return keys;
+    }
+
+    public double getLoadFactMax() {
+        return loadFactMax;
+    }
+
+    public int getSizeTable() {
+        return sizeTable;
+    }
+    public double currLoad (){
+        return (double)this.getKeys()/this.getSizeTable();
+    }
+}

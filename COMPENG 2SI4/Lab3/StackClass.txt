@@ -1,0 +1,29 @@
+public class StackClass {
+    TNode [] stack;
+    int curr = 0;
+
+    public void setSize(int size){//Sets the size of the stack
+        stack = new TNode[size];
+    }
+
+    public void push(TNode node){//Pushes an element to the top
+        stack[curr] = node;
+        curr++;
+    }
+
+    public TNode pop (){//Pops the latest element
+        curr--;
+        TNode node = stack[curr];
+        stack[curr] = null;
+        return node;
+    }
+
+    public boolean isEmpty(){//Checks if the set is empty
+        if (this.stack[0]==null){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
